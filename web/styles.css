@@ -1,0 +1,5 @@
+body { font-family: ui-sans-serif, system-ui, Segoe UI, Arial; margin: 2rem; }
+main { max-width: 720px; }
+textarea { width: 100%; }
+button { padding: .5rem .8rem; }
+#link { margin-top: 1rem; font-weight: 600; }

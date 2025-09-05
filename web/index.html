@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>SnipVault</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main>
+      <h1>SnipVault</h1>
+      <form id="new" method="post" action="/api/snips">
+        <textarea name="text" id="text" rows="6" placeholder="Paste text here"></textarea>
+        <button type="submit">Create Snip</button>
+      </form>
+      <p id="link"></p>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
