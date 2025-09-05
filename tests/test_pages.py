@@ -1,10 +1,9 @@
 # C:\Users\baket\code\m3-snipvault\tests\test_pages.py
-import time, socket
+import time, socket, json
 from urllib.request import urlopen, Request
 import snipvault.server as app
 
 def _port():
-    import socket
     s = socket.socket(); s.bind(("127.0.0.1", 0)); p = s.getsockname()[1]; s.close(); return p
 
 def test_index_served(tmp_path):
@@ -29,8 +28,9 @@ def test_s_page_shows_text(tmp_path):
         req = Request(f"http://127.0.0.1:{port}/api/snips", data=body.encode("utf-8"),
                       headers={"Content-Type":"application/x-www-form-urlencoded"})
         with urlopen(req) as r:
-            assert r.status == 201
-        with urlopen(f"http://127.0.0.1:{port}/s/1") as r:
+            created = json.loads(r.read().decode("utf-8"))
+            sid = created["id"]
+        with urlopen(f"http://127.0.0.1:{port}/s/{sid}") as r:
             html = r.read().decode("utf-8")
             assert "Alpha Bravo" in html
     finally:

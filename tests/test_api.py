@@ -22,12 +22,13 @@ def test_create_and_get_snip(tmp_path):
         with _post(f"http://127.0.0.1:{port}/api/snips", "text=hello") as r:
             assert r.status == 201
             created = json.loads(r.read().decode("utf-8"))
-            assert created["id"] == 1 and created["text"] == "hello"
+            assert isinstance(created["id"], str) and created["id"]
+            sid = created["id"]
 
-        with urlopen(f"http://127.0.0.1:{port}/api/snips/1") as r:
+        with urlopen(f"http://127.0.0.1:{port}/api/snips/{sid}") as r:
             assert r.status == 200
             got = json.loads(r.read().decode("utf-8"))
-            assert got == {"id": 1, "text": "hello"}
+            assert got["text"] == "hello" and got["id"] == sid
     finally:
         httpd.shutdown()
 
@@ -38,8 +39,26 @@ def test_get_missing_is_404(tmp_path):
     try:
         time.sleep(0.05)
         try:
-            urlopen(f"http://127.0.0.1:{port}/api/snips/999")
+            urlopen(f"http://127.0.0.1:{port}/api/snips/no-such")
             assert False, "expected 404"
+        except HTTPError as e:
+            assert e.code == 404
+    finally:
+        httpd.shutdown()
+
+def test_expiry_by_ttl(tmp_path):
+    db = tmp_path / "snips.json"
+    port = _port()
+    httpd, _, t = app.run(blocking=False, port=port, db=str(db), ttl_seconds=1)
+    try:
+        time.sleep(0.05)
+        with _post(f"http://127.0.0.1:{port}/api/snips", "text=short") as r:
+            created = json.loads(r.read().decode("utf-8"))
+            sid = created["id"]
+        time.sleep(1.2)  # let TTL elapse
+        try:
+            urlopen(f"http://127.0.0.1:{port}/api/snips/{sid}")
+            assert False, "expected 404 after expiry"
         except HTTPError as e:
             assert e.code == 404
     finally:
